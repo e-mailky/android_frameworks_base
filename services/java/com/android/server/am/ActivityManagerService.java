@@ -2217,7 +2217,7 @@ public final class ActivityManagerService extends ActivityManagerNative
             // the PID of the new process, or else throw a RuntimeException.
             Process.ProcessStartResult startResult = Process.start("android.app.ActivityThread",
                     app.processName, uid, uid, gids, debugFlags, mountExternal,
-                    app.info.targetSdkVersion, null, null);
+                    app.info.targetSdkVersion, app.info.seinfo, null);
 
             BatteryStatsImpl bs = app.batteryStats.getBatteryStats();
             synchronized (bs) {
@@ -11521,8 +11521,12 @@ public final class ActivityManagerService extends ActivityManagerNative
                         "Receiver requested to register for user " + userId
                         + " was previously registered for user " + rl.userId);
             }
+
+            boolean isSystem = callerApp != null ?
+                    (callerApp.info.flags & ApplicationInfo.FLAG_SYSTEM) != 0 : false;
+
             BroadcastFilter bf = new BroadcastFilter(filter, rl, callerPackage,
-                    permission, callingUid, userId);
+                    permission, callingUid, userId, isSystem);
             rl.add(bf);
             if (!bf.debugCheck()) {
                 Slog.w(TAG, "==> For Dynamic broadast");
